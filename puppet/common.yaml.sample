@@ -1,0 +1,4 @@
+---
+setuphosts::host_aliases: [host1, host2]
+setuphosts::hostname: main.host
+setuphosts::ip: 192.168.0.1

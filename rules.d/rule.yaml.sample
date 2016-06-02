@@ -1,0 +1,11 @@
+name: Site
+elb: site
+rules:
+  - url: main.host
+    expected_status: 200
+  - url: host1
+    expected_status: 301
+    expected_target: main.host
+  - url: host2
+    expected_status: 302
+    expected_target: main.host
