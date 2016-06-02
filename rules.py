@@ -1,4 +1,6 @@
-import httplib
+from termcolor import colored
+import http.client
+import socket
 import yaml
 
 
@@ -14,7 +16,7 @@ class Rule(object):
     request = '/'
 
     def __init__(self, url=None, expected_status=None, expected_target=None, method='GET', request='/'):
-        if expected_status in (httplib.MOVED_PERMANENTLY, httplib.FOUND):
+        if expected_status in (http.client.MOVED_PERMANENTLY, http.client.FOUND):
             if not expected_target:
                 raise TypeError('If you expect a redirect, specify where to.')
 
@@ -31,11 +33,11 @@ class Rule(object):
         self.request = request
 
     def check(self):
-        conn = httplib.HTTPConnection(self.url)
+        conn = http.client.HTTPConnection(self.url, timeout=5)
 
         try:
             conn.request(self.method, self.request)
-        except socket.error, e:
+        except socket.error as e:
             raise ExpectationFailedError(
                 'Socket error: {0}'.format(colored(e, 'red'))
             )
@@ -49,7 +51,7 @@ class Rule(object):
                 )
             )
 
-        if self.expected_status in (httplib.MOVED_PERMANENTLY, httplib.FOUND):
+        if self.expected_status in (http.client.MOVED_PERMANENTLY, http.client.FOUND):
             if not response.getheader('location') == self.expected_target:
                 raise ExpectationFailedError(
                     'Expected: {0}. Got: {1}'.format(
@@ -62,6 +64,7 @@ class Rule(object):
 
 
 class YamlRules(object):
+    hosts = []
     rule_file = None
 
     def get_rules(self):
@@ -76,6 +79,8 @@ class YamlRules(object):
 
     def get_hosts(self):
         if len(self.hosts) == 0:
+            hosts = []
             for rule in self.rule_yaml['rules']:
-                self.hosts.append(rule['url'])
+                hosts.append(rule['url'])
+                self.hosts = sorted(list(set(hosts)))
         return self.hosts

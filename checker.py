@@ -4,6 +4,7 @@ from amazon import get_instances, get_instance_ip
 from termcolor import colored, cprint
 
 import os
+import rules
 import yaml
 
 
@@ -15,7 +16,7 @@ class Configer(object):
         raise NotImplementedError
 
 
-class PuppetConf(object):
+class PuppetConf(Configer):
     puppet_common = 'puppet/common.yaml'
 
     def setup(self):
@@ -24,21 +25,17 @@ class PuppetConf(object):
         f.close()
 
     def pre_test(self, ip, hosts):
-        print('{:<25}'.format('Changing IP locally... '), end='')
+        print('{:<25}'.format('Changing IP locally... '), end='', flush=True)
 
         self.puppet_yml['setuphosts::ip'] = ip
         self.puppet_yml['setuphosts::hostname'] = hosts[0]
         self.puppet_yml['setuphosts::host_aliases'] = hosts[1:]
 
-        root = os.getcwd()
-
         f = open(self.puppet_common, 'w')
         yaml.dump(self.puppet_yml, f, explicit_start=True)
         f.close()
 
-        os.chdir('puppet')
-        os.system('sudo puppet apply --hiera_config hiera.yaml site.pp > /dev/null 2>&1')
-        os.chdir(root)
+        os.system('sudo puppet/puppet_wrapper.sh')
 
         print("{:>8}".format(colored('[ OK ]', 'green')))
 
@@ -70,11 +67,11 @@ class Checker(object):
     def check(self):
         for rule in self.rules:
             error = None
-            print("{:<25}".format(rule.url), end='')
+            print("{:<25}".format(rule.url), end='', flush=True)
 
             try:
                 check = rule.check()
-            except rules.ExpectationFailedError, e:
+            except rules.ExpectationFailedError as e:
                 msg = colored('[FAIL]', 'red')
                 error = e
             else:

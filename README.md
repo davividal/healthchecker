@@ -9,8 +9,37 @@ Work in progress.
 
 How to use:
 
-```
-$ git clone http://github.com/davividal/healthchecker && cd healthchecker
-$ pip install -r requirements.txt
-$ python healthchecker.py
-```
+1. Clone this repo
+	```
+	$ git clone http://github.com/davividal/healthchecker && cd healthchecker
+	```
+1. Install its dependencies
+	```
+	$ pip install -r requirements.txt
+	```
+
+1. Add to your sudoers:
+	```bash
+	cat <<EOF > /etc/sudoers.d/healthchecker
+	$USERNAME  ALL=(ALL) NOPASSWD: $PWD/puppet/puppet_wrapper.sh
+	EOF
+	```
+
+1. Define your rules at `rules.d/your_awesome_rules.yaml`
+
+1. Create a class to use your rules:
+	```python
+	class MyAwesomeChecker(rules.YamlRules, checker.Checker):
+	    rule_file = 'your_awesome_rules.yaml'
+
+	    def get_instances(self):
+	        self.instances = get_instances(self.elb)
+
+
+	MyAwesomeChecker()
+	```
+
+1. Execute it:
+	```
+	$ python healthchecker.py
+	```
