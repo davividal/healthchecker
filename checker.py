@@ -67,7 +67,7 @@ class Checker(object):
     def check(self):
         for rule in self.rules:
             error = None
-            print("{:<25}".format(rule.url), end='', flush=True)
+            print("{0:<25}".format(rule), end='', flush=True)
 
             try:
                 check = rule.check()

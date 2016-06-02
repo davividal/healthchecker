@@ -32,6 +32,12 @@ class Rule(object):
         self.method = method
         self.request = request
 
+    def __str__(self):
+        return self.url + self.request
+
+    def __format__(self, format_spec):
+        return str(self)[:25].__format__(format_spec)
+
     def check(self):
         conn = http.client.HTTPConnection(self.url, timeout=5)
 
