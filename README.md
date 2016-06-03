@@ -20,7 +20,7 @@ How to use:
 
 1. Add to your sudoers:
 	```bash
-	cat <<EOF > /etc/sudoers.d/healthchecker
+	cat <<EOF | sudo tee /etc/sudoers.d/healthchecker
 	$USERNAME  ALL=(ALL) NOPASSWD: $PWD/puppet/puppet_wrapper.sh
 	EOF
 	```
