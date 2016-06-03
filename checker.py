@@ -39,6 +39,9 @@ class PuppetConf(Configer):
 
         print("{:>8}".format(colored('[ OK ]', 'green')))
 
+    def shutdown(self):
+        os.system('sudo puppet/puppet_wrapper.sh shutdown')
+
 
 class Checker(object):
     rule_yaml = None
@@ -50,10 +53,13 @@ class Checker(object):
         self.configer = configer
 
         self.configer.setup()
+
         self.get_rules()
         self.get_hosts()
         self.get_instances()
         self.test()
+
+        self.configer.shutdown()
 
     def get_instances(self):
         raise NotImplementedError
