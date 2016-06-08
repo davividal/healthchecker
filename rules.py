@@ -67,26 +67,3 @@ class Rule(object):
                 )
 
         return True
-
-
-class YamlRules(object):
-    hosts = []
-    rule_file = None
-
-    def get_rules(self):
-        f = open('rules.d/' + self.rule_file)
-        self.rule_yaml = yaml.safe_load(f)
-        f.close
-
-        self.elb = self.rule_yaml['elb']
-
-        for rule in self.rule_yaml['rules']:
-            self.rules.append(Rule(**rule))
-
-    def get_hosts(self):
-        if len(self.hosts) == 0:
-            hosts = []
-            for rule in self.rule_yaml['rules']:
-                hosts.append(rule['url'])
-                self.hosts = sorted(list(set(hosts)))
-        return self.hosts

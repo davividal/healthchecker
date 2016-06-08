@@ -4,7 +4,7 @@ from amazon import get_instances, get_instance_ip
 from termcolor import colored, cprint
 
 import os
-import rules
+from rules import Rule, ExpectationFailedError
 import yaml
 
 
@@ -77,7 +77,7 @@ class Checker(object):
 
             try:
                 check = rule.check()
-            except rules.ExpectationFailedError as e:
+            except ExpectationFailedError as e:
                 msg = colored('[FAIL]', 'red')
                 error = e
             else:
@@ -103,3 +103,31 @@ class Checker(object):
             self.check()
 
 
+class YamlRules(Checker):
+    hosts = []
+    rule_file = None
+
+    def get_rules(self):
+        self.rules = []
+
+        f = open('rules.d/' + self.rule_file)
+        self.rule_yaml = yaml.safe_load(f)
+        f.close
+
+        self.elb = self.rule_yaml['elb']
+
+        for rule in self.rule_yaml['rules']:
+            self.rules.append(Rule(**rule))
+
+    def get_hosts(self):
+        if len(self.hosts) == 0:
+            hosts = []
+            for rule in self.rule_yaml['rules']:
+                hosts.append(rule['url'])
+                self.hosts = sorted(list(set(hosts)))
+        return self.hosts
+
+
+class AwsElbChecker(YamlRules):
+    def get_instances(self):
+        self.instances = get_instances(self.elb)
