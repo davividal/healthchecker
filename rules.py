@@ -43,11 +43,11 @@ class Rule(object):
 
         try:
             conn.request(self.method, self.request)
+            response = conn.getresponse()
         except socket.error as e:
             raise ExpectationFailedError(
                 'Socket error: {0}'.format(colored(e, 'red'))
             )
-        response = conn.getresponse()
 
         if not response.status == self.expected_status:
             raise ExpectationFailedError(

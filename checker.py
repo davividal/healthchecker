@@ -44,6 +44,7 @@ class PuppetConf(Configer):
 
 
 class Checker(object):
+    name = None
     rule_yaml = None
     hosts = []
     rules = []
@@ -55,20 +56,37 @@ class Checker(object):
         self.configer.setup()
 
         self.get_rules()
+        self.get_app_name()
         self.get_hosts()
         self.get_instances()
         self.test()
 
         self.configer.shutdown()
 
-    def get_instances(self):
+    def get_rules(self):
         raise NotImplementedError
 
-    def get_rules(self):
+    def get_app_name(self):
+        raise NotImplementedError
+
+    def get_instances(self):
         raise NotImplementedError
 
     def get_hosts(self):
         raise NotImplementedError
+
+    def test(self):
+        print("App: {0}, Instances: {1}".format(self.name, len(self.instances)))
+        for instance_id in self.instances:
+            instance_ip = get_instance_ip(instance_id)
+            print("Testing instance {0}, IP: {1}".format(
+                colored(instance_id, 'yellow'),
+                colored(instance_ip, 'yellow'))
+            )
+
+            self.configer.pre_test(instance_ip, self.hosts)
+
+            self.check()
 
     def check(self):
         for rule in self.rules:
@@ -90,18 +108,6 @@ class Checker(object):
             if error:
                 print(error)
 
-    def test(self):
-        for instance_id in self.instances:
-            instance_ip = get_instance_ip(instance_id)
-            print("Testing instance {0}, IP: {1}".format(
-                colored(instance_id, 'yellow'),
-                colored(instance_ip, 'yellow'))
-            )
-
-            self.configer.pre_test(instance_ip, self.hosts)
-
-            self.check()
-
 
 class YamlRules(Checker):
     hosts = []
@@ -118,6 +124,9 @@ class YamlRules(Checker):
 
         for rule in self.rule_yaml['rules']:
             self.rules.append(Rule(**rule))
+
+    def get_app_name(self):
+        self.name = self.rule_yaml['name']
 
     def get_hosts(self):
         if len(self.hosts) == 0:
