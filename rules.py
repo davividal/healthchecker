@@ -1,7 +1,5 @@
 from termcolor import colored
-import http.client
-import socket
-import yaml
+import requests
 
 
 class ExpectationFailedError(Exception):
@@ -12,11 +10,13 @@ class Rule(object):
     url = None
     expected_status = None
     expected_target = None
+    user_agent = 'Python HealthChecker - github.com/davividal/healthchecker'
     method = 'GET'
     request = '/'
+    schema = 'http://'
 
-    def __init__(self, url=None, expected_status=None, expected_target=None, method='GET', request='/'):
-        if expected_status in (http.client.MOVED_PERMANENTLY, http.client.FOUND):
+    def __init__(self, url=None, expected_status=None, expected_target=None, method='GET', request='/', user_agent=None):
+        if expected_status in (requests.codes.moved_permanently, requests.codes.found):
             if not expected_target:
                 raise TypeError('If you expect a redirect, specify where to.')
 
@@ -31,39 +31,47 @@ class Rule(object):
         self.expected_target = expected_target
         self.method = method
         self.request = request
+        self.user_agent = user_agent or self.user_agent
 
     def __str__(self):
-        return self.url + self.request
+        return self.schema + self.url + self.request
 
     def __format__(self, format_spec):
         return str(self)[:25].__format__(format_spec)
 
     def check(self):
-        conn = http.client.HTTPConnection(self.url, timeout=5)
-
         try:
-            conn.request(self.method, self.request)
-            response = conn.getresponse()
-        except socket.error as e:
+            response = getattr(requests, self.method.lower())(
+                str(self),
+                params={},
+                headers={'User-Agent': self.user_agent},
+                timeout=5
+            )
+        except requests.exceptions.RequestException as e:
             raise ExpectationFailedError(
-                'Socket error: {0}'.format(colored(e, 'red'))
+                'Request error: {0}'.format(colored(e, 'red'))
             )
 
-        if not response.status == self.expected_status:
-            raise ExpectationFailedError(
-                'Expected: {0}. Got: {1}'.format(
-                    colored(self.expected_status, 'green'),
-                    colored(response.status, 'red')
-                )
-            )
-
-        if self.expected_status in (http.client.MOVED_PERMANENTLY, http.client.FOUND):
-            if not response.getheader('location') == self.expected_target:
+        if not response.status_code == self.expected_status:
+            if len(response.history) > 0 and response.history[0].status_code == self.expected_status:
+                self.check_redirect(response)
+            else:
                 raise ExpectationFailedError(
-                    'Expected: {0}. Got: {1}'.format(
-                        colored(self.expected_target, 'green'),
-                        colored(response.getheader('location'), 'red')
+                    'Expected: {0}. Got: {1} {2}'.format(
+                        colored(self.expected_status, 'green'),
+                        colored(response.status_code, 'red'),
+                        str(self)
                     )
                 )
 
         return True
+
+    def check_redirect(self, response):
+        if self.expected_status in (requests.codes.moved_permanently, requests.codes.found):
+            if not response.url == self.expected_target:
+                raise ExpectationFailedError(
+                    'Expected: {0}. Got: {1}'.format(
+                        colored(self.expected_target, 'green'),
+                        colored(response.url, 'red')
+                    )
+                )

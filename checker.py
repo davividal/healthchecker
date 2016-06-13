@@ -1,7 +1,5 @@
-from __future__ import print_function
-
 from amazon import get_instances, get_instance_ip
-from termcolor import colored, cprint
+from termcolor import colored
 
 import os
 from rules import Rule, ExpectationFailedError
@@ -18,6 +16,7 @@ class Configer(object):
 
 class PuppetConf(Configer):
     puppet_common = 'puppet/common.yaml'
+    puppet_yml = None
 
     def setup(self):
         f = open(self.puppet_common)
@@ -39,7 +38,8 @@ class PuppetConf(Configer):
 
         print("{:>8}".format(colored('[ OK ]', 'green')))
 
-    def shutdown(self):
+    @staticmethod
+    def shutdown():
         os.system('sudo puppet/puppet_wrapper.sh shutdown')
 
 
@@ -49,6 +49,7 @@ class Checker(object):
     hosts = []
     rules = []
     elb = None
+    instances = []
 
     def __init__(self, configer=PuppetConf()):
         self.configer = configer
@@ -111,14 +112,18 @@ class Checker(object):
 
 class YamlRules(Checker):
     hosts = []
+
     rule_file = None
+
+    def get_instances(self):
+        raise NotImplementedError
 
     def get_rules(self):
         self.rules = []
 
         f = open('rules.d/' + self.rule_file)
         self.rule_yaml = yaml.safe_load(f)
-        f.close
+        f.close()
 
         self.elb = self.rule_yaml['elb']
 

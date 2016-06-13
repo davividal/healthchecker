@@ -1,3 +1,4 @@
 PyYAML
 boto3
 termcolor
+requests

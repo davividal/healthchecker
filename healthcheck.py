@@ -8,7 +8,7 @@ class SiteChecker(AwsElbChecker):
 
 
 class BlogChecker(AwsElbChecker):
-	rule_file = 'blog.yaml'
+    rule_file = 'blog.yaml'
 
 
 if __name__ == '__main__':
