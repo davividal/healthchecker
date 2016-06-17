@@ -13,9 +13,9 @@ class Rule(object):
     user_agent = 'Python HealthChecker - github.com/davividal/healthchecker'
     method = 'GET'
     request = '/'
-    schema = 'http://'
+    schema = 'http'
 
-    def __init__(self, url=None, expected_status=None, expected_target=None, method='GET', request='/', user_agent=None):
+    def __init__(self, url=None, expected_status=None, expected_target=None, method='GET', request='/', user_agent=None, schema=None):
         if expected_status in (requests.codes.moved_permanently, requests.codes.found):
             if not expected_target:
                 raise TypeError('If you expect a redirect, specify where to.')
@@ -32,9 +32,10 @@ class Rule(object):
         self.method = method
         self.request = request
         self.user_agent = user_agent or self.user_agent
+        self.schema = schema or self.schema
 
     def __str__(self):
-        return self.schema + self.url + self.request
+        return self.schema + '://' + self.url + self.request
 
     def __format__(self, format_spec):
         return str(self)[:25].__format__(format_spec)
@@ -45,7 +46,8 @@ class Rule(object):
                 str(self),
                 params={},
                 headers={'User-Agent': self.user_agent},
-                timeout=5
+                timeout=5,
+                verify=False
             )
         except requests.exceptions.RequestException as e:
             raise ExpectationFailedError(
