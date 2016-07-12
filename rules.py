@@ -39,7 +39,7 @@ class Rule(object):
         return self.schema + '://' + self.url + self.request
 
     def __format__(self, format_spec):
-        return str(self)[:25].__format__(format_spec)
+        return str(self)[:45].__format__(format_spec)
 
     def add_header(self, header, content):
         self.custom_headers[header] = content
@@ -59,7 +59,7 @@ class Rule(object):
             )
 
         if not response.status_code == self.expected_status:
-            if len(response.history) > 0 and response.history[0].status_code == self.expected_status:
+            if len(response.history) > 0:
                 self.check_redirect(response)
             else:
                 raise ExpectationFailedError(
@@ -73,6 +73,15 @@ class Rule(object):
         return True
 
     def check_redirect(self, response):
+        if not response.history[0].status_code == self.expected_status:
+            raise ExpectationFailedError(
+                'Expected: {0}. Got: {1} {2}'.format(
+                    colored(self.expected_status, 'green'),
+                    colored(response.history[0].status_code, 'red'),
+                    str(self)
+                )
+            )
+
         if self.expected_status in (requests.codes.moved_permanently, requests.codes.found):
             if not response.url == self.expected_target:
                 raise ExpectationFailedError(
