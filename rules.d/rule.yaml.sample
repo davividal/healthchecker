@@ -1,6 +1,8 @@
 name: Site
 elb: site
 region_name: us-east-1
+headers:
+  - x-custom-header: my-header-content
 rules:
   - url: main.host
     expected_status: 200

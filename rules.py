@@ -14,6 +14,7 @@ class Rule(object):
     method = 'GET'
     request = '/'
     schema = 'http'
+    custom_headers = {}
 
     def __init__(self, url=None, expected_status=None, expected_target=None, method='GET', request='/', user_agent=None, schema=None):
         if expected_status in (requests.codes.moved_permanently, requests.codes.found):
@@ -31,7 +32,7 @@ class Rule(object):
         self.expected_target = expected_target
         self.method = method
         self.request = request
-        self.user_agent = user_agent or self.user_agent
+        self.custom_headers['User-Agent'] = user_agent or self.user_agent
         self.schema = schema or self.schema
 
     def __str__(self):
@@ -40,12 +41,15 @@ class Rule(object):
     def __format__(self, format_spec):
         return str(self)[:25].__format__(format_spec)
 
+    def add_header(self, header, content):
+        self.custom_headers[header] = content
+
     def check(self):
         try:
             response = getattr(requests, self.method.lower())(
                 str(self),
                 params={},
-                headers={'User-Agent': self.user_agent},
+                headers=self.custom_headers,
                 timeout=5,
                 verify=False
             )

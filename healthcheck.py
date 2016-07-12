@@ -6,14 +6,14 @@ import sys
 
 
 if __name__ == '__main__':
-    run = []
+    rule_filter = []
 
     for app in sys.argv[1:]:
-        run.append(app)
-    run = sorted(list(set(run)))
+        rule_filter.append(app)
+    rule_filter = sorted(list(set(rule_filter)))
 
-    if not bool(set(run)):
-        run = list(filter(lambda r: r.endswith('.yaml'), os.listdir('rules.d')))
+    run = list(filter(lambda r: r.endswith('.yaml'), os.listdir('rules.d')))
+    run = list(filter(lambda r: r.split('.')[0] in rule_filter, run))
 
     for rule in run:
         checker = Checker(AwsElbChecker(rule))

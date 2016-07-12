@@ -154,7 +154,12 @@ class YamlRules(RuleRepository):
         f.close()
 
         for rule in self.rule_yaml['rules']:
-            self.rules.append(Rule(**rule))
+            r = Rule(**rule)
+
+            for custom_header in self.rule_yaml['custom_headers']:
+                header, content = list(custom_header.items())[0]
+                r.add_header(header, content)
+            self.rules.append(r)
 
     def setup_app_name(self):
         self.name = self.rule_yaml['name']
