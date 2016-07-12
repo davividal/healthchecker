@@ -1,5 +1,6 @@
 name: Site
 elb: site
+region_name: us-east-1
 rules:
   - url: main.host
     expected_status: 200

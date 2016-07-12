@@ -1,8 +1,8 @@
 import boto3
 
 
-def get_instances(elb='site'):
-    client = boto3.client('elb')
+def get_instances(elb, region_name):
+    client = boto3.client('elb', region_name=region_name)
 
     site = client.describe_load_balancers(LoadBalancerNames=[elb])
 
@@ -11,8 +11,8 @@ def get_instances(elb='site'):
     return instances
 
 
-def get_instance_ip(instance_id):
-    ec2 = boto3.resource('ec2')
+def get_instance_ip(instance_id, region_name):
+    ec2 = boto3.resource('ec2', region_name=region_name)
     instance = ec2.Instance(instance_id)
 
     return instance.private_ip_address

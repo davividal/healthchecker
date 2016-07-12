@@ -1,26 +1,9 @@
 #!/usr/bin/env python3
-from checker import AwsElbChecker
+from checker import Checker, AwsElbChecker
 
+import os
 import sys
 
-
-class SiteChecker(AwsElbChecker):
-    rule_file = 'site.yaml'
-
-
-class BlogChecker(AwsElbChecker):
-    rule_file = 'blog.yaml'
-
-
-class AlugueCarroChecker(AwsElbChecker):
-    rule_file = 'aluguecarro.yaml'
-
-
-class_lookup = {
-    'site': SiteChecker,
-    'blog': BlogChecker,
-    'alugue': AlugueCarroChecker
-}
 
 if __name__ == '__main__':
     run = []
@@ -30,7 +13,8 @@ if __name__ == '__main__':
     run = sorted(list(set(run)))
 
     if not bool(set(run)):
-        run = ['site', 'blog', 'alugue']
+        run = list(filter(lambda r: r.endswith('.yaml'), os.listdir('rules.d')))
 
-    for app in run:
-        class_lookup[app]()
+    for rule in run:
+        checker = Checker(AwsElbChecker(rule))
+        checker.run()

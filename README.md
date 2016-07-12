@@ -27,19 +27,7 @@ How to use:
 
 1. Define your rules at `rules.d/your_awesome_rules.yaml`
 
-1. Create a class to use your rules:
-	```python
-	class MyAwesomeChecker(rules.YamlRules, checker.Checker):
-	    rule_file = 'your_awesome_rules.yaml'
-
-	    def get_instances(self):
-	        self.instances = get_instances(self.elb)
-
-
-	MyAwesomeChecker()
-	```
-
 1. Execute it:
 	```
-	$ python healthchecker.py
+	$ python healthchecker.py [your_awesome_rules]
 	```
